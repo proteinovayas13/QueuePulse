@@ -1,0 +1,38 @@
+﻿name: DWH Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 10 * * *'
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: queuepulse
+          POSTGRES_USER: queuepulse
+          POSTGRES_PASSWORD: queuepulse123
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U queuepulse" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install requests
+        run: pip install requests
+      
+      - name: Wait for PostgreSQL
+        run: sleep 30
+      
+      - name: Run DWH report
+        run: python scripts/dwh_report.py
