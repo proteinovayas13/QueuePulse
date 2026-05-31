@@ -1,4 +1,4 @@
-﻿name: QueuePulse Telegram Report
+﻿name: QueuePulse Report
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   send:
     runs-on: ubuntu-latest
     steps:
-      - name: Send message to Telegram
+      - name: Send Telegram
         run: |
           curl -X POST "https://api.telegram.org/bot8992445678:AAFFz-SceU04rDvJgd0o7Gh4CHBbZHbdjUA/sendMessage" \
             -H "Content-Type: application/json" \
-            -d '{"chat_id": 6159736716, "text": "Test from GitHub Actions - QueuePulse"}'
+            -d '{"chat_id": 6159736716, "text": "Hello from QueuePulse!"}'
