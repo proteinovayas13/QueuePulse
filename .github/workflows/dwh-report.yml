@@ -18,11 +18,7 @@ jobs:
           POSTGRES_PASSWORD: queuepulse123
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U queuepulse"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        options: --health-cmd "pg_isready -U queuepulse" --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -33,46 +29,13 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: |
-          pip install requests
+        run: pip install requests
       
       - name: Wait for PostgreSQL
         run: sleep 20
       
-      - name: Get DWH stats and send
+      - name: Run report script
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          python -c "
-          import requests
-          import subprocess
-          from datetime import datetime
-          
-          BOT_TOKEN = '${{ secrets.TELEGRAM_BOT_TOKEN }}'
-          CHAT_ID = '${{ secrets.TELEGRAM_CHAT_ID }}'
-          
-          # Get data
-          result = subprocess.run(['docker', 'exec', 'queuepulse-postgres', 'psql', '-U', 'queuepulse', '-d', 'queuepulse', '-t', '-c', 'SELECT COUNT(*) FROM dwh.fact_orders'], capture_output=True, text=True)
-          orders = result.stdout.strip()
-          
-          result = subprocess.run(['docker', 'exec', 'queuepulse-postgres', 'psql', '-U', 'queuepulse', '-d', 'queuepulse', '-t', '-c', 'SELECT COALESCE(ROUND(SUM(amount)::numeric, 2), 0) FROM dwh.fact_orders'], capture_output=True, text=True)
-          revenue = result.stdout.strip()
-          
-          message = f'''========================================
-QUEUEPULSE DWH REPORT
-{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-========================================
-
-TOTAL STATISTICS:
-----------------------------------------
-Total Orders: {int(orders):,}
-Total Revenue: ${float(revenue):,.2f}
-
-STATUS: OPERATIONAL
-========================================'''
-          
-          url = f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage'
-          requests.post(url, json={'chat_id': CHAT_ID, 'text': message})
-          print('Report sent!')
-          "
+        run: python scripts/send_report.py
