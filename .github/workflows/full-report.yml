@@ -1,0 +1,76 @@
+﻿name: Full DWH Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 10 * * *'
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: queuepulse
+          POSTGRES_USER: queuepulse
+          POSTGRES_PASSWORD: queuepulse123
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U queuepulse" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Wait for PostgreSQL
+        run: sleep 30
+      
+      - name: Get data and send to Telegram
+        env:
+          TG_BOT: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python -c "
+          import requests, subprocess, datetime, os
+          
+          # Get orders count
+          orders = subprocess.run(
+              ['docker', 'exec', 'queuepulse-postgres', 'psql', '-U', 'queuepulse', '-d', 'queuepulse', '-t', '-c', 
+               'SELECT COUNT(*) FROM dwh.fact_orders'],
+              capture_output=True, text=True
+          ).stdout.strip() or '0'
+          
+          # Get revenue
+          revenue = subprocess.run(
+              ['docker', 'exec', 'queuepulse-postgres', 'psql', '-U', 'queuepulse', '-d', 'queuepulse', '-t', '-c', 
+               'SELECT COALESCE(ROUND(SUM(amount)::numeric, 2), 0) FROM dwh.fact_orders'],
+              capture_output=True, text=True
+          ).stdout.strip() or '0'
+          
+          # Create message
+          now = datetime.datetime.now()
+          message = f'''
+QUEUEPULSE DWH REPORT
+{now.strftime('%Y-%m-%d %H:%M:%S')}
+------------------------
+Total Orders: {int(orders):,}
+Total Revenue: ${float(revenue):,.2f}
+------------------------
+Status: OPERATIONAL
+'''
+          
+          # Send to Telegram
+          url = f'https://api.telegram.org/bot{os.environ["TG_BOT"]}/sendMessage'
+          r = requests.post(url, json={'chat_id': os.environ["TG_CHAT"], 'text': message})
+          print(f'Status: {r.status_code}')
+          print('Report sent!')
+          "
