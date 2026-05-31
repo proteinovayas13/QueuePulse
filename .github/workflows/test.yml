@@ -1,4 +1,4 @@
-﻿name: Simple Telegram Test
+﻿name: Telegram Test
 
 on:
   workflow_dispatch:
@@ -9,6 +9,7 @@ jobs:
     steps:
       - name: Send message
         run: |
-          curl -X POST "https://api.telegram.org/bot8992445678:AAFFz-SceU04rDvJgd0o7Gh4CHBbZHbdjUA/sendMessage" \
+          curl -s -X POST "https://api.telegram.org/bot8992445678:AAFFz-SceU04rDvJgd0o7Gh4CHBbZHbdjUA/sendMessage" \
             -H "Content-Type: application/json" \
-            -d '{"chat_id": 6159736716, "text": "Hello from QueuePulse! Workflow is working."}'
+            -d '{"chat_id": 6159736716, "text": "Test from GitHub Actions"}'
+          echo "Message sent"
