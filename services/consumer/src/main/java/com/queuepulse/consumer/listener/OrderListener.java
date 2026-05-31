@@ -19,27 +19,51 @@ public class OrderListener {
     @RabbitListener(queues = "order.queue")
     public void receiveOrder(Map<String, Object> message) {
         try {
-            // Извлекаем данные из сообщения
+            System.out.println("Received message: " + message);
+            
+            // Extract data with null checks
             String orderId = (String) message.get("orderId");
+            if (orderId == null) {
+                System.err.println("orderId is null");
+                return;
+            }
+            
             String userId = (String) message.get("userId");
-            BigDecimal amount = new BigDecimal(message.get("amount").toString());
+            if (userId == null) {
+                userId = "unknown_user";
+            }
+            
             String productId = (String) message.get("productId");
+            if (productId == null) {
+                productId = "unknown_product";
+            }
             
-            System.out.println("Received order: " + orderId + " for user: " + userId);
+            BigDecimal amount = null;
+            Object amountObj = message.get("amount");
+            if (amountObj instanceof BigDecimal) {
+                amount = (BigDecimal) amountObj;
+            } else if (amountObj instanceof Number) {
+                amount = BigDecimal.valueOf(((Number) amountObj).doubleValue());
+            } else if (amountObj instanceof String) {
+                amount = new BigDecimal((String) amountObj);
+            } else {
+                amount = BigDecimal.ZERO;
+            }
             
-            // Создаем Entity
+            System.out.println("Processing order: " + orderId + " for user: " + userId + " amount: " + amount);
+            
+            // Create entity
             OrderEntity order = new OrderEntity();
             order.setId(UUID.fromString(orderId));
             order.setUserId(userId);
             order.setAmount(amount);
             order.setProductId(productId);
-            order.setStatus("PENDING");
+            order.setStatus("PROCESSED");
             order.setProcessedAt(LocalDateTime.now());
             
-            // Сохраняем в БД
+            // Save to DWH
             dwhService.saveOrder(order);
-            
-            System.out.println("Order processed successfully: " + orderId);
+            System.out.println("Order saved successfully: " + orderId);
             
         } catch (Exception e) {
             System.err.println("Error processing order: " + e.getMessage());

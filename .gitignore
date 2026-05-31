@@ -1,4 +1,5 @@
-﻿# Java
+@"
+# Java
 target/
 *.class
 *.jar
@@ -47,3 +48,6 @@ env/
 # Temporary files
 *.tmp
 *.temp
+"@ | Out-File -FilePath ".gitignore" -Encoding UTF8
+
+Write-Host ".gitignore created" -ForegroundColor Green
