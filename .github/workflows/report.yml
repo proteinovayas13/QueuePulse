@@ -1,49 +1,14 @@
-﻿name: QueuePulse Report
+﻿name: QueuePulse Telegram Report
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 10 * * *'
 
 jobs:
-  report:
+  send:
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: queuepulse
-          POSTGRES_USER: queuepulse
-          POSTGRES_PASSWORD: queuepulse123
-        ports:
-          - 5432:5432
-        options: --health-cmd "pg_isready -U queuepulse" --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      
-      - name: Install requests
-        run: pip install requests
-      
-      - name: Wait for PostgreSQL
-        run: sleep 30
-      
-      - name: Get stats and send to Telegram
-        env:
-          TG_BOT: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Send message to Telegram
         run: |
-          python -c "
-          import requests, subprocess, datetime
-          orders = subprocess.run(['docker','exec','queuepulse-postgres','psql','-U','queuepulse','-d','queuepulse','-t','-c','SELECT COUNT(*) FROM dwh.fact_orders'],capture_output=True,text=True).stdout.strip() or '0'
-          revenue = subprocess.run(['docker','exec','queuepulse-postgres','psql','-U','queuepulse','-d','queuepulse','-t','-c','SELECT COALESCE(ROUND(SUM(amount)::numeric,2),0) FROM dwh.fact_orders'],capture_output=True,text=True).stdout.strip() or '0'
-          msg = f'QueuePulse Report\n{datetime.datetime.now()}\nOrders: {int(orders):,}\nRevenue: ${float(revenue):,.2f}'
-          requests.post(f'https://api.telegram.org/bot{__import__("os").environ["TG_BOT"]}/sendMessage', json={'chat_id': __import__("os").environ["TG_CHAT"], 'text': msg})
-          print('Sent')
-          "
+          curl -X POST "https://api.telegram.org/bot8992445678:AAFFz-SceU04rDvJgd0o7Gh4CHBbZHbdjUA/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{"chat_id": 6159736716, "text": "Test from GitHub Actions - QueuePulse"}'
