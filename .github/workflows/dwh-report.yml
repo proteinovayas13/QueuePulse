@@ -1,4 +1,4 @@
-﻿name: Daily DWH Report
+name: Daily DWH Report
 
 on:
   schedule:
@@ -39,40 +39,9 @@ jobs:
       - name: Wait for PostgreSQL
         run: sleep 20
       
-      - name: Get DWH stats and send
+      - name: Send report
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python -c "
-          import requests
-          import subprocess
-          from datetime import datetime
-          
-          BOT_TOKEN = '${{ secrets.TELEGRAM_BOT_TOKEN }}'
-          CHAT_ID = '${{ secrets.TELEGRAM_CHAT_ID }}'
-          
-          # Get data
-          result = subprocess.run(['docker', 'exec', 'queuepulse-postgres', 'psql', '-U', 'queuepulse', '-d', 'queuepulse', '-t', '-c', 'SELECT COUNT(*) FROM dwh.fact_orders'], capture_output=True, text=True)
-          orders = result.stdout.strip()
-          
-          result = subprocess.run(['docker', 'exec', 'queuepulse-postgres', 'psql', '-U', 'queuepulse', '-d', 'queuepulse', '-t', '-c', 'SELECT COALESCE(ROUND(SUM(amount)::numeric, 2), 0) FROM dwh.fact_orders'], capture_output=True, text=True)
-          revenue = result.stdout.strip()
-          
-          message = f'''========================================
-QUEUEPULSE DWH REPORT
-{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-========================================
-
-TOTAL STATISTICS:
-----------------------------------------
-Total Orders: {int(orders):,}
-Total Revenue: ${float(revenue):,.2f}
-
-STATUS: OPERATIONAL
-========================================'''
-          
-          url = f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage'
-          requests.post(url, json={'chat_id': CHAT_ID, 'text': message})
-          print('Report sent!')
-          "
+          python scripts/send_report.py
