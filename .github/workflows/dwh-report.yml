@@ -1,9 +1,9 @@
-name: Daily DWH Report
+﻿name: DWH Report
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 10 * * *'
-  workflow_dispatch:
 
 jobs:
   send-report:
@@ -18,7 +18,11 @@ jobs:
           POSTGRES_PASSWORD: queuepulse123
         ports:
           - 5432:5432
-        options: --health-cmd "pg_isready -U queuepulse" --health-interval 10s --health-timeout 5s --health-retries 5
+        options: >-
+          --health-cmd "pg_isready -U queuepulse"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -29,13 +33,48 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          pip install requests
       
       - name: Wait for PostgreSQL
-        run: sleep 20
+        run: sleep 30
       
-      - name: Run report
+      - name: Send report
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python scripts/send_report.py
+        run: |
+          python -c "
+          import requests
+          import subprocess
+          from datetime import datetime
+          
+          BOT_TOKEN = '${{ secrets.TELEGRAM_BOT_TOKEN }}'
+          CHAT_ID = '${{ secrets.TELEGRAM_CHAT_ID }}'
+          
+          # Get data from PostgreSQL
+          orders = subprocess.run(
+              ['docker', 'exec', 'queuepulse-postgres', 'psql', '-U', 'queuepulse', '-d', 'queuepulse', '-t', '-c', 'SELECT COUNT(*) FROM dwh.fact_orders'],
+              capture_output=True, text=True
+          ).stdout.strip() or '0'
+          
+          revenue = subprocess.run(
+              ['docker', 'exec', 'queuepulse-postgres', 'psql', '-U', 'queuepulse', '-d', 'queuepulse', '-t', '-c', 'SELECT COALESCE(ROUND(SUM(amount)::numeric, 2), 0) FROM dwh.fact_orders'],
+              capture_output=True, text=True
+          ).stdout.strip() or '0'
+          
+          message = f'''
+QUEUEPULSE DWH REPORT
+{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+------------------------
+Total Orders: {int(orders):,}
+Total Revenue: ${float(revenue):,.2f}
+------------------------
+Status: OPERATIONAL
+'''
+          
+          url = f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage'
+          r = requests.post(url, json={'chat_id': CHAT_ID, 'text': message})
+          print(f'Status: {r.status_code}')
+          print('Report sent!')
+          "
