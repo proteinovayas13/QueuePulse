@@ -1,0 +1,21 @@
+﻿name: Test Telegram
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send test message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            QueuePulse Test Report
+            
+            Time: $(date -u)
+            Status: Working!
+            Total Orders: 5108
+            Total Revenue: $494,959
