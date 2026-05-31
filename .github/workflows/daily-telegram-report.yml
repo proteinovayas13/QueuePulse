@@ -1,14 +1,37 @@
-# .github/workflows/daily-telegram-report.yml
 name: Daily Telegram Report
 
 on:
   schedule:
-    - cron: '0 9 * * *'  # Every day at 09:00 UTC
-  workflow_dispatch:  # Manual trigger
+    - cron: '0 9 * * *'
+  workflow_dispatch:
 
 jobs:
   send-report:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: queuepulse
+          POSTGRES_USER: queuepulse
+          POSTGRES_PASSWORD: queuepulse123
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      rabbitmq:
+        image: rabbitmq:3.12-management
+        env:
+          RABBITMQ_DEFAULT_USER: admin
+          RABBITMQ_DEFAULT_PASS: admin123
+        ports:
+          - 5672:5672
+          - 15672:15672
     
     steps:
       - name: Checkout code
@@ -23,28 +46,13 @@ jobs:
         run: |
           pip install psycopg2-binary requests
       
-      - name: Start Docker services
-        run: |
-          docker-compose up -d
-          sleep 30
-      
-      - name: Wait for PostgreSQL
-        run: |
-          for i in {1..30}; do
-            if docker exec queuepulse-postgres pg_isready -U queuepulse; then
-              echo "PostgreSQL is ready"
-              break
-            fi
-            sleep 2
-          done
+      - name: Wait for services
+        run: sleep 30
       
       - name: Send Telegram report
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DB_HOST: localhost
         run: |
           python scripts/telegram_daily_report.py
-      
-      - name: Stop services
-        run: docker-compose down
-        if: always()
