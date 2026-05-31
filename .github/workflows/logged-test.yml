@@ -1,0 +1,24 @@
+﻿name: Logged Telegram Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send and log
+        run: |
+          RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot8992445678:AAFFz-SceU04rDvJgd0o7Gh4CHBbZHbdjUA/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{"chat_id": 6159736716, "text": "Test with logging"}' \
+            -w "\n%{http_code}")
+          
+          echo "Response: $RESPONSE"
+          
+          # Check if response contains "ok":true
+          if echo "$RESPONSE" | grep -q '"ok":true'; then
+            echo "Message sent successfully"
+          else
+            echo "Failed to send message"
+          fi
