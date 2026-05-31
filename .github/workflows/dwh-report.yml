@@ -1,4 +1,4 @@
-﻿name: Daily DWH Report
+name: Daily DWH Report
 
 on:
   schedule:
