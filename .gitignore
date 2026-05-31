@@ -1,0 +1,49 @@
+﻿# Java
+target/
+*.class
+*.jar
+!**/target/*-SNAPSHOT.jar
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Docker
+*.log
+*.pid
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Test results
+results/
+test-results/
+
+# Environment
+.env
+venv/
+env/
+
+# Temporary files
+*.tmp
+*.temp

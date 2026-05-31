@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: queuepulse-dashboard
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=queuepulse
+      - DB_USER=queuepulse
+      - DB_PASS=queuepulse123
+    networks:
+      - queuepulse-net
+    depends_on:
+      - postgres
+      - rabbitmq
+
+networks:
+  queuepulse-net:
+    external: true

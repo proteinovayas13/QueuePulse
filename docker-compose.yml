@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: queuepulse-postgres
+    environment:
+      POSTGRES_DB: queuepulse
+      POSTGRES_USER: queuepulse
+      POSTGRES_PASSWORD: queuepulse123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U queuepulse"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - queuepulse-net
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: queuepulse-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - queuepulse-net
+
+  producer:
+    build: ./services/producer
+    container_name: queuepulse-producer
+    ports:
+      - "8080:8080"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: admin
+      RABBITMQ_PASS: admin123
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - queuepulse-net
+    restart: unless-stopped
+
+  consumer:
+    build: ./services/consumer
+    container_name: queuepulse-consumer
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      DB_HOST: postgres
+      DB_NAME: queuepulse
+      DB_USER: queuepulse
+      DB_PASS: queuepulse123
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - queuepulse-net
+    restart: unless-stopped
+
+  payment-mock:
+    build: ./services/mock
+    container_name: queuepulse-mock
+    ports:
+      - "8081:8081"
+    environment:
+      MOCK_DELAY_MS: "100"
+      MOCK_FAILURE_RATE: "5"
+    networks:
+      - queuepulse-net
+
+volumes:
+  postgres_data:
+
+networks:
+  queuepulse-net:
+    driver: bridge

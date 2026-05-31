@@ -1,0 +1,5 @@
+name: constant_load
+description: Постоянная нагрузка 50 RPS
+duration: 300
+rps: 50
+concurrency: 10

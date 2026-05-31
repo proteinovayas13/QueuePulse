@@ -1,0 +1,57 @@
+﻿name: Daily DWH Report
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Каждый день в 9:00 UTC
+  workflow_dispatch:  # Ручной запуск
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install psycopg2-binary requests pandas
+      
+      - name: Start Docker services
+        run: |
+          docker-compose up -d
+          sleep 30
+      
+      - name: Generate report
+        id: report
+        run: |
+          python scripts/generate_dwh_report.py
+      
+      - name: Send to Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            QUEUEPULSE DAILY REPORT
+            
+            ${{ steps.report.outputs.message }}
+            
+            Report generated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          format: markdown
+      
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dwh-report
+          path: dwh_report.txt
+          retention-days: 30
+      
+      - name: Stop services
+        run: docker-compose down
+        if: always()

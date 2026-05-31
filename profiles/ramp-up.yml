@@ -1,0 +1,9 @@
+name: ramp_up
+description: Плавное нарастание от 10 до 100 RPS
+stages:
+  - duration: 60
+    target: 10
+  - duration: 120
+    target: 50
+  - duration: 60
+    target: 100

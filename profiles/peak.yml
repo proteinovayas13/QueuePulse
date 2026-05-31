@@ -1,0 +1,9 @@
+name: peak_load
+description: Пиковая нагрузка
+stages:
+  - duration: 30
+    target: 100
+  - duration: 60
+    target: 200
+  - duration: 30
+    target: 0

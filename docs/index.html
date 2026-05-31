@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="30">
+    <title>QueuePulse Live Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #00ff00;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #00ffcc;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .timestamp {
+            text-align: center;
+            color: #888888;
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #888888;
+            margin-bottom: 10px;
+        }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00ffcc;
+        }
+        
+        .section {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            color: #ffaa00;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-left: 3px solid #ffaa00;
+            padding-left: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333333;
+        }
+        
+        th {
+            background: #0a0a0a;
+            color: #00ffcc;
+        }
+        
+        tr:hover {
+            background: #2a2a2a;
+        }
+        
+        .status-online {
+            color: #00ff00;
+        }
+        
+        .status-offline {
+            color: #ff0000;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid #333333;
+            color: #666666;
+            font-size: 12px;
+        }
+        
+        .chart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: #0a0a0a;
+            border-radius: 5px;
+        }
+        
+        .bar {
+            background: #00ff00;
+            height: 30px;
+            margin: 5px 0;
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+        
+        .bar-label {
+            display: inline-block;
+            width: 80px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QUEUEPULSE LIVE DASHBOARD</h1>
+        <div class="timestamp" id="timestamp">Loading...</div>
+        
+        <div class="metrics-grid" id="metrics">
+            <div class="metric-card">
+                <div class="metric-label">Total Orders</div>
+                <div class="metric-value" id="total_orders">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Revenue</div>
+                <div class="metric-value" id="total_revenue">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Average Order Value</div>
+                <div class="metric-value" id="avg_order">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Unique Customers</div>
+                <div class="metric-value" id="unique_customers">-</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">System Health</div>
+            <div id="health">
+                <p>Producer: <span id="producer_status" class="status-offline">CHECKING</span></p>
+                <p>Consumer: <span id="consumer_status" class="status-offline">CHECKING</span></p>
+                <p>RabbitMQ: <span id="rabbitmq_status" class="status-offline">CHECKING</span></p>
+                <p>PostgreSQL: <span id="postgres_status" class="status-offline">CHECKING</span></p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">CPU Usage</div>
+            <div id="cpu_charts">
+                <div>Consumer: <span id="cpu_consumer">0</span>%</div>
+                <div class="bar-container">
+                    <div class="bar" id="cpu_consumer_bar" style="width: 0%"></div>
+                </div>
+                <div style="margin-top: 10px;">Producer: <span id="cpu_producer">0</span>%</div>
+                <div class="bar-container">
+                    <div class="bar" id="cpu_producer_bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">RabbitMQ Queue Status</div>
+            <div id="rabbitmq">
+                <p>Messages Ready: <span id="messages_ready">0</span></p>
+                <p>Messages Unacked: <span id="messages_unack">0</span></p>
+                <p>Consumers: <span id="consumers">0</span></p>
+                <p>Publish Rate: <span id="publish_rate">0</span> msg/s</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Top 5 Products by Revenue</div>
+            <table id="top_products">
+                <thead>
+                    <tr><th>Product ID</th><th>Orders</th><th>Revenue</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="3">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <p>Dashboard updates every 30 seconds | Data Source: QueuePulse DWH</p>
+            <p>Generated: <span id="generated"></span></p>
+        </div>
+    </div>
+    
+    <script>
+        function updateDashboard() {
+            fetch('/api/metrics')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total_orders').innerText = data.total_orders.toLocaleString();
+                    document.getElementById('total_revenue').innerText = '$' + data.total_revenue.toLocaleString();
+                    document.getElementById('avg_order').innerText = '$' + data.avg_order.toFixed(2);
+                    document.getElementById('unique_customers').innerText = data.unique_customers.toLocaleString();
+                    
+                    document.getElementById('cpu_consumer').innerText = data.cpu_consumer;
+                    document.getElementById('cpu_consumer_bar').style.width = Math.min(data.cpu_consumer / 4, 100) + '%';
+                    document.getElementById('cpu_producer').innerText = data.cpu_producer;
+                    document.getElementById('cpu_producer_bar').style.width = Math.min(data.cpu_producer / 4, 100) + '%';
+                    
+                    document.getElementById('messages_ready').innerText = data.messages_ready;
+                    document.getElementById('messages_unack').innerText = data.messages_unack;
+                    document.getElementById('consumers').innerText = data.consumers;
+                    document.getElementById('publish_rate').innerText = data.publish_rate;
+                    
+                    const producerStatus = document.getElementById('producer_status');
+                    const consumerStatus = document.getElementById('consumer_status');
+                    const rabbitmqStatus = document.getElementById('rabbitmq_status');
+                    const postgresStatus = document.getElementById('postgres_status');
+                    
+                    producerStatus.className = data.producer_status ? 'status-online' : 'status-offline';
+                    producerStatus.innerText = data.producer_status ? 'ONLINE' : 'OFFLINE';
+                    
+                    consumerStatus.className = data.consumer_status ? 'status-online' : 'status-offline';
+                    consumerStatus.innerText = data.consumer_status ? 'ONLINE' : 'OFFLINE';
+                    
+                    rabbitmqStatus.className = data.rabbitmq_status ? 'status-online' : 'status-offline';
+                    rabbitmqStatus.innerText = data.rabbitmq_status ? 'ONLINE' : 'OFFLINE';
+                    
+                    postgresStatus.className = data.postgres_status ? 'status-online' : 'status-offline';
+                    postgresStatus.innerText = data.postgres_status ? 'ONLINE' : 'OFFLINE';
+                    
+                    const tbody = document.querySelector('#top_products tbody');
+                    if (data.top_products && data.top_products.length > 0) {
+                        tbody.innerHTML = data.top_products.map(p => 
+                            `<tr><td>${p.product_id}</td><td>${p.orders}</td><td>$${p.revenue.toLocaleString()}</td></tr>`
+                        ).join('');
+                    }
+                    
+                    document.getElementById('timestamp').innerText = 'Last update: ' + data.timestamp;
+                    document.getElementById('generated').innerText = new Date().toLocaleString();
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('timestamp').innerText = 'Error loading data';
+                });
+        }
+        
+        setInterval(updateDashboard, 30000);
+        updateDashboard();
+    </script>
+</body>
+</html>
