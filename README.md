@@ -1,7 +1,33 @@
-Тесты на писанные на Python, а не Java потому что у Python скорость написания быстрее, легче изменение тестов, построения отчетов и графиков и простая интеграция.
+## Что теперь есть в репозитории:
 
+-Java Producer и Consumer сервисы
+
+-RabbitMQ интеграция
+
+-PostgreSQL Data Warehouse (схема dwh)
+
+-HTML дашборд на GitHub Pages
+
+-Python скрипты для нагрузочного тестирования
+
+-Telegram бот для ежедневных отчетов
+
+-Docker Compose для всех сервисов
+
+-GitHub Actions для CI/CD
  
 
+# Ссылка на GitHub репозиторий:
+
+https://github.com/proteinovayas13/QueuePulse
+
+*Ссылка на живой дашборд:
+
+https://proteinovayas13.github.io/QueuePulse/
+
+# Ссылка на релизы:
+
+https://github.com/proteinovayas13/QueuePulse/releases
 
 
 ## Структура проекта (Java микросервисы + Python тесты)
@@ -140,3 +166,9 @@ python scripts/load_test.py
 # Мониторинг
 bash scripts/monitor.sh
 
+Компонент	Статус	Ссылка
+GitHub Repository	✅	https://github.com/proteinovayas13/QueuePulse
+Live Dashboard	✅	https://proteinovayas13.github.io/QueuePulse/
+Producer API	✅	http://localhost:8080 (локально)
+RabbitMQ Management	✅	http://localhost:15672 (admin/admin123)
+PostgreSQL DWH	✅	localhost:5432
