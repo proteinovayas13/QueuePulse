@@ -5,154 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QueuePulse DWH Dashboard</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Courier New', monospace;
             background: #0a0a0a;
             color: #00ff00;
             padding: 20px;
         }
-        
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
         }
-        
         h1 {
             color: #00ffcc;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
+            border-bottom: 1px solid #00ffcc;
+            padding-bottom: 20px;
         }
-        
-        .timestamp {
-            text-align: center;
-            color: #888888;
-            margin-bottom: 30px;
-            font-size: 12px;
-        }
-        
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .metric-card {
+        .metric {
             background: #1a1a1a;
             border: 1px solid #00ff00;
             border-radius: 10px;
             padding: 20px;
-            text-align: center;
+            margin: 15px 0;
         }
-        
-        .metric-label {
+        .metric-title {
             font-size: 14px;
-            color: #888888;
-            margin-bottom: 10px;
+            color: #888;
         }
-        
         .metric-value {
-            font-size: 32px;
+            font-size: 48px;
             font-weight: bold;
             color: #00ffcc;
         }
-        
-        .section {
-            background: #1a1a1a;
-            border: 1px solid #00ff00;
-            border-radius: 10px;
+        .status {
+            text-align: center;
+            margin: 30px 0;
             padding: 20px;
-            margin-bottom: 20px;
+            background: #1a1a1a;
+            border-radius: 10px;
         }
-        
-        .section-title {
-            color: #ffaa00;
-            margin-bottom: 15px;
-            font-size: 18px;
-            border-left: 3px solid #ffaa00;
-            padding-left: 10px;
-        }
-        
-        .status-online {
+        .online {
             color: #00ff00;
+            font-size: 20px;
         }
-        
         .footer {
             text-align: center;
             margin-top: 30px;
             padding: 20px;
-            border-top: 1px solid #333333;
-            color: #666666;
-            font-size: 12px;
+            border-top: 1px solid #333;
+            color: #666;
         }
-        
-        .note {
-            background: #1a1a1a;
-            border: 1px solid #ffaa00;
-            border-radius: 10px;
+        .section {
+            margin: 20px 0;
             padding: 15px;
-            margin-top: 20px;
-            text-align: center;
+            background: #1a1a1a;
+            border-radius: 10px;
         }
-        
         a {
             color: #00ffcc;
+        }
+        code {
+            background: #333;
+            padding: 2px 5px;
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1> QUEUEPULSE DWH DASHBOARD</h1>
-        <div class="timestamp">Last updated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')</div>
         
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-label">Total Orders</div>
-                <div class="metric-value">$([int]$orders):N0</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Total Revenue</div>
-                <div class="metric-value">$$([decimal]$revenue):N2</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Average Order Value</div>
-                <div class="metric-value">$$([decimal]$avg_order):N2</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Unique Customers</div>
-                <div class="metric-value">$([int]$customers):N0</div>
-            </div>
+        <div class="metric">
+            <div class="metric-title">TOTAL ORDERS</div>
+            <div class="metric-value">$([int]$orders):N0</div>
+        </div>
+        
+        <div class="metric">
+            <div class="metric-title">TOTAL REVENUE</div>
+            <div class="metric-value">$$([decimal]$revenue):N2</div>
+        </div>
+        
+        <div class="metric">
+            <div class="metric-title">AVERAGE ORDER VALUE</div>
+            <div class="metric-value">$$([decimal]$avg_order):N2</div>
+        </div>
+        
+        <div class="metric">
+            <div class="metric-title">UNIQUE CUSTOMERS</div>
+            <div class="metric-value">$([int]$customers):N0</div>
+        </div>
+        
+        <div class="status">
+            <div class="online"> SYSTEM STATUS: OPERATIONAL</div>
+            <div>Success Rate: 100%</div>
+            <div>Last update: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')</div>
         </div>
         
         <div class="section">
-            <div class="section-title"> System Status</div>
-            <p><span class="status-online">● ONLINE</span> - Data Warehouse is operational</p>
-            <p> All systems are functioning normally</p>
-            <p> Success Rate: 100%</p>
+            <h3 style="color:#ffaa00">🔗 Quick Links</h3>
+            <p>• <a href="https://github.com/proteinovayas13/QueuePulse" target="_blank">GitHub Repository</a></p>
+            <p>• <a href="https://t.me/Queuepulse_bot" target="_blank">Telegram Bot: @Queuepulse_bot</a></p>
+            <p>• <a href="https://proteinovayas13.github.io/QueuePulse/dashboard.html" target="_blank">Alternative Dashboard</a></p>
         </div>
         
         <div class="section">
-            <div class="section-title">🔗 Quick Links</div>
-            <p> <a href="https://github.com/proteinovayas13/QueuePulse" target="_blank">GitHub Repository</a></p>
-            <p><a href="https://t.me/Queuepulse_bot" target="_blank">Telegram Bot: @Queuepulse_bot</a></p>
-            <p><a href="http://localhost:15672" target="_blank">RabbitMQ Console</a> (admin/admin123 - local only)</p>
-        </div>
-        
-        <div class="note">
-            <p><strong>For Live Real-time Dashboard:</strong></p>
-            <p>Run <code>python scripts/dashboard_api.py</code> locally and open <code>http://localhost:5000</code></p>
+            <h3 style="color:#ffaa00"> Live Real-time Dashboard</h3>
+            <p>For real-time metrics with auto-refresh, run locally:</p>
+            <code>python scripts/dashboard_api.py</code><br>
+            <code>open http://localhost:5000</code>
         </div>
         
         <div class="footer">
-            <p>Data Source: PostgreSQL Data Warehouse | QueuePulse Monitoring System</p>
-            <p> Data updates on each deployment</p>
+            <p>Data Source: PostgreSQL Data Warehouse (dwh.fact_orders)</p>
+            <p>QueuePulse Monitoring System | <a href="https://github.com/proteinovayas13/QueuePulse">GitHub</a></p>
         </div>
     </div>
 </body>
