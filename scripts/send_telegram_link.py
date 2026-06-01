@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 
 BOT_TOKEN = "8992445678:AAFFz-SceU04rDvJgd0o7Gh4CHBbZHbdjUA"
-CHAT_ID = "8992445678"  
+CHAT_ID = "6159736716"  
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
