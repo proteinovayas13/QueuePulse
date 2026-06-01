@@ -1,106 +1,15 @@
-Тесты на писанные на Python, а не Java потому что у Python скорость написания быстрее, легче изменение тестов, построения отчетов и графиков и простая интеграция.
+# QueuePulse - Data Warehouse Monitoring System
+Комплексная система для мониторинга Data Warehouse в реальном времени. Проект демонстрирует работу микросервисной архитектуры с использованием Java, RabbitMQ, PostgreSQL и автоматизированным нагрузочным тестированием.
 
- 
+Настроен автоматический Telegram-бот для мониторинга Data Warehouse в реальном времени и полный цикл CI/CD с использованием GitHub Actions и GitHub Pages.
 
+Дашборд отображает в реальном времени:
+- Общее количество заказов
+- Общую выручку
+- Статус системы
+- CPU Usage (Consumer, Producer, RabbitMQ)
+- Message Rate (RPS через RabbitMQ)
 
-
-## Структура проекта (Java микросервисы + Python тесты)
-
-queuepulse/
-├── docker-compose.yml
-├── init.sql
-├── README.md
-├── docs/
-│   ├── methodology.md
-│   └── results.md
-├── services/
-│   ├── producer/
-│   │   ├── Dockerfile
-│   │   ├── pom.xml
-│   │   └── src/main/java/com/queuepulse/producer/
-│   │       ├── Application.java
-│   │       ├── controller/OrderController.java
-│   │       ├── service/RabbitMqService.java
-│   │       └── dto/OrderDto.java
-│   ├── consumer/
-│   │   ├── Dockerfile
-│   │   ├── pom.xml
-│   │   └── src/main/java/com/queuepulse/consumer/
-│   │       ├── Application.java
-│   │       ├── listener/OrderListener.java
-│   │       ├── service/DwhService.java
-│   │       └── entity/OrderEntity.java
-│   └── mock/
-│       ├── Dockerfile
-│       ├── pom.xml
-│       └── src/main/java/com/queuepulse/mock/
-│           └── PaymentMockController.java
-├── scripts/
-│   ├── load_test.py
-│   ├── generate_data.py
-│   ├── analyze_results.py
-│   └── monitor.sh
-├── load-tests/
-│   ├── smoke-test.js
-│   ├── load-test.js
-│   ├── spike-test.js
-│   └── stress-test.js
-├── profiles/
-│   ├── constant.yml
-│   ├── ramp-up.yml
-│   └── peak.yml
-└── results/
-    └── .gitkeep
-
-
-
-# Методология нагрузочного тестирования QueuePulse
-
-## Жизненный цикл проекта по нагрузке
-
-### 1. Планирование
-- Определение целей: обработка 1000 заказов/сек
-- Выбор метрик: latency (p95 < 500ms), throughput (>50 RPS), error rate (<1%)
-- Настройка окружения: Docker, PostgreSQL, RabbitMQ
-
-### 2. Разработка
-- Создание скриптов на Java и Python
-- Настройка тестовых сценариев
-- Разработка заглушек для внешних сервисов
-
-### 3. Подготовка стенда
-- Docker Compose для микросервисов
-- Настройка сетей и volumes
-- Инициализация БД
-
-### 4. Запуск тестов
-- Smoke test (проверка работоспособности)
-- Load test (номинальная нагрузка)
-- Spike test (пиковая нагрузка)
-- Stress test (запредельная нагрузка)
-- Soak test (длительная нагрузка)
-
-### 5. Анализ результатов
-- Сбор метрик из Prometheus/API
-- Визуализация в Grafana
-- Формирование отчета
-
-### 6. Оптимизация
-- Настройка пулов соединений
-- Оптимизация запросов
-- Масштабирование consumer
-
-## Этапы нагрузочного тестирования
-
-| Этап | Длительность | Цель | Метрики |
-|------|--------------|------|---------|
-| Smoke | 30 сек | Проверка доступности | Status 200 |
-| Ramp-up | 2 мин | Плавный рост нагрузки | RPS growth |
-| Peak | 5 мин | Максимальная нагрузка | P95 latency |
-| Ramp-down | 1 мин | Снижение нагрузки | Error rate |
-| Cooldown | 30 сек | Восстановление | Recovery time |
-
-## Основные и дополнительные тесты
 
 ### Основные
 - Smoke test - базовая проверка
@@ -131,8 +40,17 @@ cd queuepulse
 # Запуск
 docker-compose up -d
 
-# Генерация 1000 заказов
+# Генерация тестовых данных (1000 заказов)
 python scripts/generate_data.py
+
+# Запуск нагрузочного теста
+python scripts/load_test.py
+
+# Запуск real-time дашборда
+python scripts/live_monitor.py
+
+# Отправка отчета в Telegram
+python scripts/send_telegram_link.py
 
 # Запуск нагрузочного теста
 python scripts/load_test.py
@@ -140,3 +58,5 @@ python scripts/load_test.py
 # Мониторинг
 bash scripts/monitor.sh
 
+# Деплой происходит из папки /docs ветки main
+source: /docs on branch main
